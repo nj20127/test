@@ -1,0 +1,18 @@
+{
+  "name": "qtlabs-website",
+  "version": "1.0.0",
+  "description": "Professional website for QT Labs - Quantum Technology Research and Innovation",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx live-server ."
+  },
+  "keywords": [
+    "quantum",
+    "technology",
+    "research",
+    "innovation"
+  ],
+  "author": "QT Labs",
+  "license": "MIT"
+}
