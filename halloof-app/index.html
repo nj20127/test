@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>حلّوف ولا مش حلّوف</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&family=Amiri:wght@700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+        }
+
+        #container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        #title {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Amiri', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+            letter-spacing: 2px;
+        }
+
+        #status {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px 30px;
+            border-radius: 30px;
+            z-index: 10;
+            text-align: center;
+        }
+
+        #scanning {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            color: #00ff88;
+            display: none;
+            z-index: 15;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        #result-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 20;
+        }
+
+        .result-bg {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+            background:
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px),
+                repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px);
+        }
+
+        .circle-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 500px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 8px solid #fff;
+        }
+
+        .stamp {
+            font-family: 'Amiri', serif;
+            font-size: 4rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+            transform: rotate(-5deg);
+            letter-spacing: 5px;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        .accent-text {
+            position: absolute;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 900;
+            font-size: 5rem;
+            color: rgba(255, 255, 255, 0.15);
+            letter-spacing: 10px;
+        }
+
+        .accent-1 {
+            top: 10%;
+            right: 10%;
+            transform: rotate(15deg);
+        }
+
+        .accent-2 {
+            bottom: 10%;
+            left: 10%;
+            transform: rotate(-15deg);
+        }
+
+        #save-btn {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            background: #00d9ff;
+            color: #000;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            z-index: 25;
+            display: none;
+            box-shadow: 0 5px 20px rgba(0, 217, 255, 0.5);
+        }
+
+        #save-btn:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        #start-btn {
+            padding: 20px 50px;
+            font-size: 2rem;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            background: #ff6b35;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.5);
+        }
+
+        #start-btn:active {
+            transform: scale(0.95);
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            #title {
+                font-size: 2rem;
+                top: 15px;
+            }
+
+            .stamp {
+                font-size: 3rem;
+            }
+
+            .accent-text {
+                font-size: 3rem;
+            }
+
+            #status {
+                font-size: 1rem;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1 id="title">حلّوف ولا مش حلّوف</h1>
+
+        <video id="video" playsinline autoplay></video>
+        <canvas id="canvas"></canvas>
+
+        <div id="scanning">جاري الفحص...</div>
+        <div id="status">ابحث عن شخص...</div>
+
+        <div id="result-overlay">
+            <canvas id="snapshot-canvas"></canvas>
+            <div class="result-bg">
+                <div class="pattern"></div>
+                <div class="accent-text accent-1">حلّوف</div>
+                <div class="accent-text accent-2">حلّوف</div>
+                <div class="circle-overlay">
+                    <div class="stamp" id="judgment-text">حلّوف</div>
+                </div>
+            </div>
+        </div>
+
+        <button id="save-btn">احفظ الصورة</button>
+        <button id="start-btn">ابدأ</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const snapshotCanvas = document.getElementById('snapshot-canvas');
+        const ctx = canvas.getContext('2d');
+        const statusDiv = document.getElementById('status');
+        const scanningDiv = document.getElementById('scanning');
+        const resultOverlay = document.getElementById('result-overlay');
+        const judgmentText = document.getElementById('judgment-text');
+        const saveBtn = document.getElementById('save-btn');
+        const startBtn = document.getElementById('start-btn');
+
+        let model;
+        let personDetectedTime = null;
+        let isProcessing = false;
+        let animationFrame;
+        let timeoutId;
+
+        startBtn.addEventListener('click', async () => {
+            startBtn.style.display = 'none';
+            statusDiv.innerHTML = 'جاري التحميل...';
+
+            try {
+                // Load the model
+                model = await cocoSsd.load();
+
+                // Request camera access
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'user',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    snapshotCanvas.width = window.innerWidth;
+                    snapshotCanvas.height = window.innerHeight;
+                    detectPerson();
+                };
+
+                statusDiv.innerHTML = 'ابحث عن شخص...';
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.innerHTML = 'خطأ: يرجى السماح بالوصول للكاميرا';
+            }
+        });
+
+        async function detectPerson() {
+            if (isProcessing) return;
+
+            try {
+                const predictions = await model.detect(video);
+                const personDetected = predictions.some(p => p.class === 'person' && p.score > 0.5);
+
+                if (personDetected) {
+                    if (!personDetectedTime) {
+                        personDetectedTime = Date.now();
+                        statusDiv.innerHTML = 'تم اكتشاف شخص...';
+                        scanningDiv.style.display = 'block';
+                    } else {
+                        const elapsed = Date.now() - personDetectedTime;
+                        const remaining = Math.ceil((2000 - elapsed) / 1000);
+
+                        if (elapsed >= 2000) {
+                            // Person detected for 2 seconds, make judgment
+                            await makeJudgment();
+                            return;
+                        } else {
+                            statusDiv.innerHTML = `جاري الفحص... ${remaining}`;
+                        }
+                    }
+                } else {
+                    personDetectedTime = null;
+                    statusDiv.innerHTML = 'ابحث عن شخص...';
+                    scanningDiv.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Detection error:', error);
+            }
+
+            animationFrame = requestAnimationFrame(detectPerson);
+        }
+
+        async function makeJudgment() {
+            isProcessing = true;
+            cancelAnimationFrame(animationFrame);
+
+            // 75% chance of being halloof
+            const isHalloof = Math.random() < 0.75;
+            const judgment = isHalloof ? 'حلّوف' : 'مش حلّوف';
+
+            // Capture the current frame
+            captureSnapshot();
+
+            // Update overlay
+            judgmentText.textContent = judgment;
+
+            // Change colors based on judgment
+            const circleOverlay = document.querySelector('.circle-overlay');
+            const accentTexts = document.querySelectorAll('.accent-text');
+
+            if (isHalloof) {
+                circleOverlay.style.background = 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)';
+                accentTexts.forEach(text => text.textContent = 'حلّوف');
+            } else {
+                circleOverlay.style.background = 'linear-gradient(135deg, #00a8a8 0%, #00d9ff 100%)';
+                accentTexts.forEach(text => text.textContent = 'مش حلّوف');
+            }
+
+            // Show result
+            video.style.display = 'none';
+            scanningDiv.style.display = 'none';
+            statusDiv.style.display = 'none';
+            resultOverlay.style.display = 'block';
+            saveBtn.style.display = 'block';
+
+            // Auto-reset after 5 seconds
+            timeoutId = setTimeout(resetToCamera, 5000);
+        }
+
+        function captureSnapshot() {
+            const snapCtx = snapshotCanvas.getContext('2d');
+
+            // Calculate dimensions to cover the screen while maintaining aspect ratio
+            const videoAspect = video.videoWidth / video.videoHeight;
+            const screenAspect = window.innerWidth / window.innerHeight;
+
+            let drawWidth, drawHeight, offsetX, offsetY;
+
+            if (videoAspect > screenAspect) {
+                drawHeight = window.innerHeight;
+                drawWidth = drawHeight * videoAspect;
+                offsetX = -(drawWidth - window.innerWidth) / 2;
+                offsetY = 0;
+            } else {
+                drawWidth = window.innerWidth;
+                drawHeight = drawWidth / videoAspect;
+                offsetX = 0;
+                offsetY = -(drawHeight - window.innerHeight) / 2;
+            }
+
+            snapCtx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
+
+            // Position the snapshot canvas
+            snapshotCanvas.style.position = 'absolute';
+            snapshotCanvas.style.top = '0';
+            snapshotCanvas.style.left = '0';
+            snapshotCanvas.style.width = '100%';
+            snapshotCanvas.style.height = '100%';
+            snapshotCanvas.style.objectFit = 'cover';
+        }
+
+        function resetToCamera() {
+            clearTimeout(timeoutId);
+            resultOverlay.style.display = 'none';
+            saveBtn.style.display = 'none';
+            video.style.display = 'block';
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = 'ابحث عن شخص...';
+
+            personDetectedTime = null;
+            isProcessing = false;
+
+            detectPerson();
+        }
+
+        saveBtn.addEventListener('click', () => {
+            // Create a composite canvas
+            const compositeCanvas = document.createElement('canvas');
+            compositeCanvas.width = snapshotCanvas.width;
+            compositeCanvas.height = snapshotCanvas.height;
+            const compositeCtx = compositeCanvas.getContext('2d');
+
+            // Draw the snapshot
+            compositeCtx.drawImage(snapshotCanvas, 0, 0);
+
+            // Add semi-transparent overlay
+            compositeCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            compositeCtx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+
+            // Draw accent text
+            compositeCtx.save();
+            compositeCtx.font = '900 5rem Cairo, sans-serif';
+            compositeCtx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            compositeCtx.textAlign = 'center';
+            compositeCtx.translate(compositeCanvas.width * 0.9, compositeCanvas.height * 0.1);
+            compositeCtx.rotate(15 * Math.PI / 180);
+            compositeCtx.fillText(judgmentText.textContent, 0, 0);
+            compositeCtx.restore();
+
+            compositeCtx.save();
+            compositeCtx.translate(compositeCanvas.width * 0.1, compositeCanvas.height * 0.9);
+            compositeCtx.rotate(-15 * Math.PI / 180);
+            compositeCtx.fillText(judgmentText.textContent, 0, 0);
+            compositeCtx.restore();
+
+            // Draw circle
+            const centerX = compositeCanvas.width / 2;
+            const centerY = compositeCanvas.height / 2;
+            const radius = Math.min(compositeCanvas.width, compositeCanvas.height) * 0.35;
+
+            // Create gradient
+            const gradient = compositeCtx.createLinearGradient(
+                centerX - radius, centerY - radius,
+                centerX + radius, centerY + radius
+            );
+
+            if (judgmentText.textContent === 'حلّوف') {
+                gradient.addColorStop(0, '#ff6b35');
+                gradient.addColorStop(1, '#f7931e');
+            } else {
+                gradient.addColorStop(0, '#00a8a8');
+                gradient.addColorStop(1, '#00d9ff');
+            }
+
+            compositeCtx.fillStyle = gradient;
+            compositeCtx.beginPath();
+            compositeCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            compositeCtx.fill();
+
+            // Draw circle border
+            compositeCtx.strokeStyle = '#fff';
+            compositeCtx.lineWidth = 8;
+            compositeCtx.stroke();
+
+            // Draw judgment text
+            compositeCtx.save();
+            compositeCtx.font = '700 4rem Amiri, serif';
+            compositeCtx.fillStyle = '#fff';
+            compositeCtx.textAlign = 'center';
+            compositeCtx.textBaseline = 'middle';
+            compositeCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            compositeCtx.shadowBlur = 8;
+            compositeCtx.shadowOffsetX = 4;
+            compositeCtx.shadowOffsetY = 4;
+            compositeCtx.translate(centerX, centerY);
+            compositeCtx.rotate(-5 * Math.PI / 180);
+            compositeCtx.fillText(judgmentText.textContent, 0, 0);
+            compositeCtx.restore();
+
+            // Download
+            compositeCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `halloof-${Date.now()}.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        });
+
+        // Prevent screen sleep on mobile
+        if ('wakeLock' in navigator) {
+            navigator.wakeLock.request('screen').catch(err => {
+                console.log('Wake Lock error:', err);
+            });
+        }
+    </script>
+</body>
+</html>
