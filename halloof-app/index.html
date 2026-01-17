@@ -215,10 +215,34 @@
             border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 10px 30px rgba(255, 107, 53, 0.5);
+            z-index: 30;
         }
 
         #start-btn:active {
             transform: scale(0.95);
+        }
+
+        #judge-btn {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 20px 50px;
+            font-size: 2rem;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            background: #ff6b35;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            z-index: 10;
+            display: none;
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.5);
+        }
+
+        #judge-btn:active {
+            transform: translateX(-50%) scale(0.95);
         }
 
         .loading {
@@ -229,6 +253,22 @@
             color: #fff;
             font-size: 1.5rem;
             text-align: center;
+        }
+
+        #error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff6b35;
+            font-size: 1.2rem;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 80%;
+            display: none;
+            z-index: 40;
         }
 
         @media (max-width: 768px) {
@@ -275,37 +315,45 @@
         </div>
 
         <button id="save-btn">احفظ الصورة</button>
+        <button id="judge-btn">احكم عليهم!</button>
         <button id="start-btn">ابدأ</button>
+        <div id="error"></div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
 
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const snapshotCanvas = document.getElementById('snapshot-canvas');
-        const ctx = canvas.getContext('2d');
         const statusDiv = document.getElementById('status');
         const scanningDiv = document.getElementById('scanning');
         const resultOverlay = document.getElementById('result-overlay');
         const judgmentText = document.getElementById('judgment-text');
         const saveBtn = document.getElementById('save-btn');
         const startBtn = document.getElementById('start-btn');
+        const judgeBtn = document.getElementById('judge-btn');
+        const errorDiv = document.getElementById('error');
 
-        let model;
-        let personDetectedTime = null;
         let isProcessing = false;
-        let animationFrame;
         let timeoutId;
 
+        function showError(message) {
+            errorDiv.innerHTML = message;
+            errorDiv.style.display = 'block';
+            console.error(message);
+        }
+
         startBtn.addEventListener('click', async () => {
+            console.log('Start button clicked');
             startBtn.style.display = 'none';
             statusDiv.innerHTML = 'جاري التحميل...';
 
             try {
-                // Load the model
-                model = await cocoSsd.load();
+                console.log('Requesting camera access...');
+
+                // Check if getUserMedia is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('الكاميرا غير مدعومة في هذا المتصفح');
+                }
 
                 // Request camera access
                 const stream = await navigator.mediaDevices.getUserMedia({
@@ -316,93 +364,78 @@
                     }
                 });
 
+                console.log('Camera access granted');
                 video.srcObject = stream;
+
                 video.onloadedmetadata = () => {
+                    console.log('Video loaded');
+                    video.play();
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     snapshotCanvas.width = window.innerWidth;
                     snapshotCanvas.height = window.innerHeight;
-                    detectPerson();
-                };
 
-                statusDiv.innerHTML = 'ابحث عن شخص...';
+                    statusDiv.innerHTML = 'وجّه الكاميرا على شخص واضغط "احكم عليهم"';
+                    judgeBtn.style.display = 'block';
+                };
             } catch (error) {
                 console.error('Error:', error);
-                statusDiv.innerHTML = 'خطأ: يرجى السماح بالوصول للكاميرا';
+                showError('خطأ: يرجى السماح بالوصول للكاميرا في الإعدادات<br><br>' + error.message);
+                startBtn.style.display = 'block';
+                statusDiv.style.display = 'none';
             }
         });
 
-        async function detectPerson() {
+        judgeBtn.addEventListener('click', async () => {
             if (isProcessing) return;
+            console.log('Judge button clicked');
+            makeJudgment();
+        });
 
-            try {
-                const predictions = await model.detect(video);
-                const personDetected = predictions.some(p => p.class === 'person' && p.score > 0.5);
-
-                if (personDetected) {
-                    if (!personDetectedTime) {
-                        personDetectedTime = Date.now();
-                        statusDiv.innerHTML = 'تم اكتشاف شخص...';
-                        scanningDiv.style.display = 'block';
-                    } else {
-                        const elapsed = Date.now() - personDetectedTime;
-                        const remaining = Math.ceil((2000 - elapsed) / 1000);
-
-                        if (elapsed >= 2000) {
-                            // Person detected for 2 seconds, make judgment
-                            await makeJudgment();
-                            return;
-                        } else {
-                            statusDiv.innerHTML = `جاري الفحص... ${remaining}`;
-                        }
-                    }
-                } else {
-                    personDetectedTime = null;
-                    statusDiv.innerHTML = 'ابحث عن شخص...';
-                    scanningDiv.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Detection error:', error);
-            }
-
-            animationFrame = requestAnimationFrame(detectPerson);
-        }
-
-        async function makeJudgment() {
+        function makeJudgment() {
             isProcessing = true;
-            cancelAnimationFrame(animationFrame);
 
-            // 75% chance of being halloof
-            const isHalloof = Math.random() < 0.75;
-            const judgment = isHalloof ? 'حلّوف' : 'مش حلّوف';
+            // Show scanning animation
+            scanningDiv.style.display = 'block';
+            statusDiv.innerHTML = 'جاري الفحص...';
+            judgeBtn.style.display = 'none';
 
-            // Capture the current frame
-            captureSnapshot();
+            // Wait 1 second for dramatic effect
+            setTimeout(() => {
+                // 75% chance of being halloof
+                const isHalloof = Math.random() < 0.75;
+                const judgment = isHalloof ? 'حلّوف' : 'مش حلّوف';
 
-            // Update overlay
-            judgmentText.textContent = judgment;
+                console.log('Judgment:', judgment);
 
-            // Change colors based on judgment
-            const circleOverlay = document.querySelector('.circle-overlay');
-            const accentTexts = document.querySelectorAll('.accent-text');
+                // Capture the current frame
+                captureSnapshot();
 
-            if (isHalloof) {
-                circleOverlay.style.background = 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)';
-                accentTexts.forEach(text => text.textContent = 'حلّوف');
-            } else {
-                circleOverlay.style.background = 'linear-gradient(135deg, #00a8a8 0%, #00d9ff 100%)';
-                accentTexts.forEach(text => text.textContent = 'مش حلّوف');
-            }
+                // Update overlay
+                judgmentText.textContent = judgment;
 
-            // Show result
-            video.style.display = 'none';
-            scanningDiv.style.display = 'none';
-            statusDiv.style.display = 'none';
-            resultOverlay.style.display = 'block';
-            saveBtn.style.display = 'block';
+                // Change colors based on judgment
+                const circleOverlay = document.querySelector('.circle-overlay');
+                const accentTexts = document.querySelectorAll('.accent-text');
 
-            // Auto-reset after 5 seconds
-            timeoutId = setTimeout(resetToCamera, 5000);
+                if (isHalloof) {
+                    circleOverlay.style.background = 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)';
+                    accentTexts.forEach(text => text.textContent = 'حلّوف');
+                } else {
+                    circleOverlay.style.background = 'linear-gradient(135deg, #00a8a8 0%, #00d9ff 100%)';
+                    accentTexts.forEach(text => text.textContent = 'مش حلّوف');
+                }
+
+                // Show result
+                video.style.display = 'none';
+                scanningDiv.style.display = 'none';
+                statusDiv.style.display = 'none';
+                resultOverlay.style.display = 'block';
+                saveBtn.style.display = 'block';
+
+                // Auto-reset after 5 seconds
+                timeoutId = setTimeout(resetToCamera, 5000);
+            }, 1000);
         }
 
         function captureSnapshot() {
@@ -443,12 +476,10 @@
             saveBtn.style.display = 'none';
             video.style.display = 'block';
             statusDiv.style.display = 'block';
-            statusDiv.innerHTML = 'ابحث عن شخص...';
+            statusDiv.innerHTML = 'وجّه الكاميرا على شخص واضغط "احكم عليهم"';
+            judgeBtn.style.display = 'block';
 
-            personDetectedTime = null;
             isProcessing = false;
-
-            detectPerson();
         }
 
         saveBtn.addEventListener('click', () => {

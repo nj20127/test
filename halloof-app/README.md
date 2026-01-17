@@ -47,21 +47,24 @@ If you want to test it on your iPhone without uploading to GitHub:
 
 1. **Tap "ابدأ" (Start)** to begin
 2. **Allow camera access** when prompted
-3. **Point the camera at a person** - keep them in frame for 2 seconds
-4. **The app will "scan"** and make a judgment
-5. **75% of the time** it will say "حلّوف"
-6. **25% of the time** it will say "مش حلّوف"
-7. **Save the image** by tapping "احفظ الصورة" or wait 5 seconds for it to reset
+3. **Point the camera at a person**
+4. **Tap "احكم عليهم!" (Judge them!)** button
+5. **The app will "scan"** for 1 second (dramatic effect!)
+6. **75% of the time** it will say "حلّوف"
+7. **25% of the time** it will say "مش حلّوف"
+8. **Save the image** by tapping "احفظ الصورة" or wait 5 seconds for it to auto-reset
 
 ## Features
 
-- ✅ Real-time person detection using AI
+- ✅ Live camera feed
+- ✅ One-tap judgment button
 - ✅ Fun Arabic graphic design overlay (inspired by your images)
 - ✅ 75% chance of "حلّوف" judgment
 - ✅ Save captured images
 - ✅ Auto-reset after 5 seconds
 - ✅ Works on iPhone and desktop
 - ✅ No app store needed!
+- ✅ Simple and fast (no AI required)
 
 ## Design Elements
 
@@ -74,22 +77,23 @@ The app uses colors and design inspired by your reference images:
 ## Technical Details
 
 The app is a single HTML file that includes:
-- TensorFlow.js for AI-powered person detection
 - Canvas API for image capture and overlay
 - MediaDevices API for camera access
+- Pure JavaScript (no frameworks needed!)
 - Responsive design for mobile and desktop
 
 ## Troubleshooting
 
 **Camera not working?**
-- Make sure you allowed camera permissions
+- Make sure you allowed camera permissions when prompted
 - Try using Safari on iPhone (works best)
-- HTTPS is required for camera access on mobile (use GitHub Pages or ngrok)
+- HTTPS is required for camera access on mobile (use GitHub Pages)
+- If using GitHub Pages, make sure it's enabled in Settings > Pages
 
-**Not detecting people?**
-- Make sure there's good lighting
-- Get closer to the camera
-- Wait a moment for the AI model to load
+**Button doesn't work?**
+- Make sure the camera is active (you should see yourself)
+- Try refreshing the page
+- Check if you're using Safari on iPhone (other browsers may not work as well)
 
 **Want to change the probability?**
 - Open `index.html` in a text editor
