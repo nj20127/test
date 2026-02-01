@@ -847,25 +847,6 @@
             opacity: 0.15;
         }
 
-        /* Brazilian meme text stickers */
-        .meme-sticker {
-            position: absolute;
-            font-family: 'Fredoka', sans-serif;
-            font-weight: 700;
-            padding: 8px 16px;
-            border-radius: 20px;
-            opacity: 0.2;
-            transform: rotate(var(--rotation, 0deg));
-            white-space: nowrap;
-            pointer-events: none;
-            animation: float 25s infinite ease-in-out;
-        }
-
-        .meme-sticker.yellow { background: var(--yellow-carnival); color: var(--dark); }
-        .meme-sticker.green { background: var(--green-brazil); color: white; }
-        .meme-sticker.pink { background: var(--pink-hot); color: white; }
-        .meme-sticker.blue { background: var(--blue-sky); color: white; }
-
         /* Responsive adjustments */
         @media (max-width: 360px) {
             .container {
@@ -924,19 +905,19 @@
         <div class="screen active" id="loginScreen">
             <div class="login-card">
                 <div class="login-emoji-row">
-                    <span>🇧🇷</span>
+                    <span>🎉</span>
                     <span>💃</span>
                     <span>🎭</span>
-                    <span>🍹</span>
-                    <span>🇧🇷</span>
+                    <span>🕺</span>
+                    <span>🎊</span>
                 </div>
-                <h2 class="login-title">BORA PRO CARNAVAL!</h2>
-                <p class="login-subtitle">Enter your name to get your unique bingo card, meu parceiro</p>
+                <h2 class="login-title">Welcome to Carnaval!</h2>
+                <p class="login-subtitle">Enter your name to get your unique bingo card</p>
                 <div class="input-group">
                     <input type="text" id="playerNameInput" placeholder="Your name..." maxlength="20" autocomplete="off">
                 </div>
                 <button class="btn btn-primary" id="joinBtn" disabled>
-                    🇧🇷 BORA! Let's Go!
+                    🎭 Let's Party!
                 </button>
             </div>
         </div>
@@ -1016,10 +997,9 @@
 
     <!-- Bingo Celebration -->
     <div class="bingo-celebration" id="bingoCelebration">
-        <div class="bingo-text">🇧🇷 BINGO! 🇧🇷</div>
-        <p class="bingo-subtext">CARACA! You completed all 25 squares!</p>
-        <p class="bingo-subtext" style="font-size: 1rem; margin-top: 10px;">Você é o cara! 👑</p>
-        <button class="bingo-close" id="bingoClose">VAMOOO! 🍹</button>
+        <div class="bingo-text">🎉 BINGO! 🎉</div>
+        <p class="bingo-subtext">You completed all 25 squares!</p>
+        <button class="bingo-close" id="bingoClose">VAMOOO! 🇧🇷</button>
     </div>
 
     <script>
@@ -1382,7 +1362,7 @@
                 showToast('Square unmarked', 'info');
             } else {
                 completedSquares.add(selectedCellIndex);
-                showToast('DALE! 🇧🇷', 'success');
+                showToast('Nice one! 🎉', 'success');
                 triggerConfetti();
             }
 
@@ -1439,56 +1419,17 @@
 
         function createBackgroundDecorations() {
             const container = document.getElementById('bgDecorations');
+            const emojis = ['🎭', '🎉', '🎊', '💃', '🕺', '🇧🇷', '🌴', '🥁', '🎺', '🪘', '✨', '🌟', '💫', '🎪', '🦜'];
 
-            // Brazilian-themed emojis
-            const emojis = ['🎭', '🎉', '🎊', '💃', '🕺', '🇧🇷', '🌴', '🥁', '🎺', '🪘', '✨', '🍹', '🎪', '🦜', '⚽', '🏖️', '🌊', '☀️', '🥥', '💚', '💛'];
-
-            // Brazilian memes and expressions
-            const memes = [
-                { text: 'VAI BRASIL! 🇧🇷', color: 'green' },
-                { text: 'É NÓIS!', color: 'yellow' },
-                { text: 'BORA BORA!', color: 'pink' },
-                { text: 'CARACA!', color: 'blue' },
-                { text: 'DALE!', color: 'yellow' },
-                { text: 'VAMOOO!', color: 'green' },
-                { text: 'SAUDADE', color: 'pink' },
-                { text: 'GOSTOSO!', color: 'yellow' },
-                { text: 'MARAVILHA', color: 'green' },
-                { text: 'É TETRA!', color: 'yellow' },
-                { text: 'FICA FRIO', color: 'blue' },
-                { text: 'TAMO JUNTO', color: 'green' },
-                { text: 'BELEZA!', color: 'yellow' },
-                { text: 'QUE ISSO!', color: 'pink' },
-                { text: 'CAIPIRINHA 🍹', color: 'green' },
-                { text: 'AXÉ!', color: 'yellow' },
-                { text: 'SAMBA! 💃', color: 'pink' },
-                { text: 'MASSA!', color: 'blue' },
-            ];
-
-            // Add floating emojis
-            for (let i = 0; i < 15; i++) {
+            for (let i = 0; i < 20; i++) {
                 const emoji = document.createElement('div');
                 emoji.className = 'floating-emoji';
                 emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
                 emoji.style.left = Math.random() * 100 + '%';
                 emoji.style.top = Math.random() * 100 + '%';
                 emoji.style.animationDelay = Math.random() * 20 + 's';
-                emoji.style.fontSize = (1.5 + Math.random() * 2) + 'rem';
+                emoji.style.fontSize = (1 + Math.random() * 2) + 'rem';
                 container.appendChild(emoji);
-            }
-
-            // Add meme stickers
-            for (let i = 0; i < 8; i++) {
-                const meme = memes[Math.floor(Math.random() * memes.length)];
-                const sticker = document.createElement('div');
-                sticker.className = `meme-sticker ${meme.color}`;
-                sticker.textContent = meme.text;
-                sticker.style.left = Math.random() * 80 + 10 + '%';
-                sticker.style.top = Math.random() * 80 + 10 + '%';
-                sticker.style.setProperty('--rotation', (Math.random() * 30 - 15) + 'deg');
-                sticker.style.animationDelay = Math.random() * 25 + 's';
-                sticker.style.fontSize = (0.7 + Math.random() * 0.5) + 'rem';
-                container.appendChild(sticker);
             }
         }
 
@@ -1578,7 +1519,7 @@
             // Subscribe to leaderboard
             subscribeToLeaderboard();
 
-            showToast(`E aí ${name}! BORA! 🇧🇷`, 'success');
+            showToast(`Welcome ${name}! 🎭`, 'success');
         }
 
         function handleOnline() {
@@ -1588,7 +1529,7 @@
 
             // Sync any pending changes
             saveToFirebase().then(() => {
-                showToast('Voltou! Synced ✓ 🍹', 'success');
+                showToast('Back online! Synced ✓', 'success');
             });
         }
 
